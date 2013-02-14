@@ -190,9 +190,9 @@ public class MainActivity extends Activity {
 
 	private final TextView.OnTouchListener continuousQrcode = new TextView.OnTouchListener() {
 		public boolean onTouch(View v, MotionEvent event) {
-			Intent intent = new Intent(getBaseContext(), ContinuousQRCodeFatherScan.class);
-			intent.putExtra("FatherCode", "Father QrCode stub");
-			startActivity(intent);
+			IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+			SCANMESSAGE = PARENTSCAN;
+			integrator.initiateScan();
 			return false;
 		}
 

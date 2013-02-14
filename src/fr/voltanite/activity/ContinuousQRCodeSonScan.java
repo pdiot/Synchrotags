@@ -2,6 +2,9 @@ package fr.voltanite.activity;
 
 import java.util.ArrayList;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,6 +48,23 @@ public class ContinuousQRCodeSonScan extends Activity {
 		intent.putExtra("FatherCode", "Father QrCode Stub");
 		startActivity(intent);
 		finish();
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+		Intent intent;
+		String message;
+		if (requestCode != 1) 
+		{
+			if (!scanResult.equals(null)) {
+				message = scanResult.getContents();
+				intent = new Intent(this, ContinuousQRCodeSonScan.class);
+				intent.putExtra("FatherId", FATHER);
+				intent.putExtra("SonCode", message);
+				startActivity(intent);
+				finish();
+			}
+		}
 	}
 	
 	public void createMeta(View v)
@@ -105,14 +125,60 @@ public class ContinuousQRCodeSonScan extends Activity {
 		}
 
 		METAS = new ArrayList<Metadata>();
-		Intent intent = new Intent(this, ContinuousQRCodeSonScan.class);
-		intent.putExtra("FatherId", FATHER);
-		intent.putExtra("SonCode", "Son QrCode Stub");
-		startActivity(intent);
+		IntentIntegrator integrator = new IntentIntegrator(ContinuousQRCodeSonScan.this);
+		integrator.initiateScan();
 	}
 	
 	public void endScans(View v)
 	{
+		TextView tnom = (TextView) findViewById(R.id.sonscan_name);
+		String nom = tnom.getText().toString();
+		TextView tdesc = (TextView) findViewById(R.id.sonscan_desc);
+		String desc = tdesc.getText().toString();
+		if (!nom.equals(""))					{
+			NAME = nom;
+		}
+		if (!desc.equals(""))
+		{
+			DESC = desc;
+		}
+
+		Noeud noeud = new Noeud(NAME, QRCODE, DESC, FATHER, 0);
+		NoeudsBDD nbdd = new NoeudsBDD(getBaseContext());
+		
+		try {
+			nbdd.open();
+			ArrayList<Noeud> bd_noeuds = nbdd.getNoeuds();
+			ArrayList<Integer> ids = new ArrayList<Integer>();
+			for (Noeud node : bd_noeuds)
+			{
+				ids.add(node.getId());
+				ids.add(node.getMeta());
+			}
+			int max = 0;
+			for (Integer val : ids )
+			{
+				if (val > max)
+				{
+					max = val;
+				}
+			}
+			max += 1;
+			noeud.setMeta(max);
+			nbdd.insertNoeud(noeud);
+			for(Metadata meta : METAS)
+			{
+				meta.setId(max);
+				nbdd.insertMeta(meta);					
+			}				
+			nbdd.close();
+			
+		} catch (NoMatchableNodeException e) {
+			// TODO Auto-generated catch block
+			Utils.popDebug(getBaseContext(), "Exception : " + e.getMessage());
+		}
+
+		METAS = new ArrayList<Metadata>();
 		Intent intent = new Intent(this, MainActivity.class);
 		startActivity(intent);
 	}

@@ -79,6 +79,7 @@ public class ContinuousQRCodeFatherScan extends Activity {
 				message = scanResult.getContents();
 				intent.putExtra("FatherId", IDTOTRANSMIT);
 				intent.putExtra("SonCode", message);
+				startActivity(intent);
 			}
 		}
 
@@ -87,8 +88,6 @@ public class ContinuousQRCodeFatherScan extends Activity {
 
 	public void createNode(View v)
 	{
-		Intent intent = new Intent(this, ContinuousQRCodeSonScan.class);
-
 		TextView tnom = (TextView) findViewById(R.id.conti_fatherscan_saisie_nom);
 		String nom = tnom.getText().toString();
 		TextView tpar = (TextView) findViewById(R.id.conti_fatherscan_father);					
@@ -129,7 +128,7 @@ public class ContinuousQRCodeFatherScan extends Activity {
 					max = val;
 				}
 			}
-			int fatherId = max + 1;
+			IDTOTRANSMIT = max + 1;
 			for (Integer val : metas)
 			{
 				if (val > max)
@@ -146,15 +145,15 @@ public class ContinuousQRCodeFatherScan extends Activity {
 				nbdd.insertMeta(meta);					
 			}				
 			nbdd.close();
-			intent.putExtra("FatherId", fatherId);
-			intent.putExtra("SonCode", "Son QrCode Stub");
 		} catch (NoMatchableNodeException e) {
 			// TODO Auto-generated catch block
 			Utils.popDebug(getBaseContext(), "Exception : " + e.getMessage());
 		}
 
 		METAS = new ArrayList<Metadata>();
-		startActivity(intent);
+		
+		IntentIntegrator integrator = new IntentIntegrator(ContinuousQRCodeFatherScan.this);
+		integrator.initiateScan();
 	}
 
 
