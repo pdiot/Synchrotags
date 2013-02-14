@@ -35,10 +35,16 @@ import fr.voltanite.utils.Utils;
 public class MainActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "qrcode_stub";
 	public final static String EXTRA_MESSAGE_ID = "";
+	public static String SCANMESSAGE = ""; 
 	public static int id_racine = 0;
 	public static String LOGINUSR;
 	public static String LOGINPWD;
-	
+	public static int LIVETEST = 12;
+	public static String PUNCTUALSCAN = "pucntualscan";
+	public static String CONTINUSCAN = "conitnusscan";
+	public static String SEARCHSCAN = "srchescan";
+	public static String PARENTSCAN = "prenascan";
+
 	private static final String TAG = MainActivity.class.getSimpleName();
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -52,8 +58,7 @@ public class MainActivity extends Activity {
 		findViewById(R.id.testJEE).setOnTouchListener((OnTouchListener)testJEE);
 		findViewById(R.id.testPHP2).setOnTouchListener((OnTouchListener)Login);
 		findViewById(R.id.searchByCode).setOnTouchListener((OnTouchListener)codeSearch);
-		Utils.popDebug(getBaseContext(), LOGINUSR);
-		Utils.popDebug(getBaseContext(), LOGINPWD);
+		SCANMESSAGE = "";
 	}
 
 	@Override
@@ -61,38 +66,87 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-	    // Handle item selection
-	    switch (item.getItemId()) {
-	    case R.id.menu_settings:
-	    	Utils.popDebug(getBaseContext(), "bidule");
-			Intent intent = new Intent(getBaseContext(), SettingsActivity.class);
-			startActivity(intent);
-	    default:
-	        return super.onOptionsItemSelected(item);
-	    }
+
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+		Intent intent;
+		String message;
+		if (SCANMESSAGE == "testLive") {
+			if (!scanResult.equals(null)) {
+				message = scanResult.getContents();
+				Utils.popDebug(this, message);
+			}
+		}
+		if (SCANMESSAGE == PARENTSCAN) {
+			if (!scanResult.equals(null)) {
+				message = scanResult.getContents();
+				intent = new Intent(getBaseContext(), ContinuousQRCodeFatherScan.class);
+				intent.putExtra("FatherCode", message);
+				startActivity(intent);
+			}
+		}
+		if (SCANMESSAGE == PUNCTUALSCAN) {
+			if (!scanResult.equals(null)) {
+				message = scanResult.getContents();
+				intent = new Intent(getBaseContext(), AddQRcode.class);
+				intent.putExtra(EXTRA_MESSAGE, message);
+				startActivity(intent);  
+			}
+		}
+		if (SCANMESSAGE == SEARCHSCAN) {
+			if (!scanResult.equals(null)) {
+				message = scanResult.getContents();
+				intent = new Intent(getBaseContext(), NodeSearchByCode.class);
+				intent.putExtra(EXTRA_MESSAGE, "/Racine");
+				intent.putExtra(EXTRA_MESSAGE_ID, String.valueOf(id_racine));
+				intent.putExtra("qrCode", message);
+				startActivity(intent);
+			}
+		}
 	}
 	
+	private final TextView.OnTouchListener testLive = new TextView.OnTouchListener() {
+		public boolean onTouch(View v, MotionEvent event) {
+			IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+			SCANMESSAGE = "testLive";
+			integrator.initiateScan();
+
+			//Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+			//startActivity(intent);
+			return false;
+		}
+
+	};
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.menu_settings:
+			Utils.popDebug(getBaseContext(), "bidule");
+			Intent intent = new Intent(getBaseContext(), SettingsActivity.class);
+			startActivity(intent);
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
 	public void onBackPressed()
 	{
 		finish();
 	}
-	
+
 	private final TextView.OnTouchListener codeSearch = new TextView.OnTouchListener()
 	{
 		public boolean onTouch(View v, MotionEvent event){
-			Intent intent = new Intent(getBaseContext(), NodeSearchByCode.class);
-			intent.putExtra(EXTRA_MESSAGE, "/Racine");
-			intent.putExtra(EXTRA_MESSAGE_ID, String.valueOf(id_racine));
-			intent.putExtra("qrCode", "test qrcode");
-			startActivity(intent);
+			IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+			SCANMESSAGE = SEARCHSCAN;
+			integrator.initiateScan();
 			return false;
 		}
 	};
-			
-			
+
+
 	private final TextView.OnTouchListener showbdd = new TextView.OnTouchListener() {
 		public boolean onTouch(View v, MotionEvent event) {
 			Intent intent = new Intent(getBaseContext(), NodeDisplayActivity.class);
@@ -115,7 +169,7 @@ public class MainActivity extends Activity {
 	private final TextView.OnTouchListener testJEE = new TextView.OnTouchListener() {
 		public boolean onTouch(View v, MotionEvent event) {
 			jsonTest("http://h.n0m.fr:9000/alex/");
-//			Utils.popDebug(getBaseContext(), "Not yet.");	
+			//			Utils.popDebug(getBaseContext(), "Not yet.");	
 			return false;
 		}
 
@@ -132,17 +186,7 @@ public class MainActivity extends Activity {
 
 	};
 
-	private final TextView.OnTouchListener testLive = new TextView.OnTouchListener() {
-		public boolean onTouch(View v, MotionEvent event) {
-			//IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
-			//integrator.initiateScan();
-			
-			Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-			startActivity(intent);
-			return false;
-		}
-
-	};
+	
 
 	private final TextView.OnTouchListener continuousQrcode = new TextView.OnTouchListener() {
 		public boolean onTouch(View v, MotionEvent event) {
@@ -155,23 +199,13 @@ public class MainActivity extends Activity {
 	};
 
 
-	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-		if (scanResult != null) {
-			Intent addqrcode = new Intent(this, AddQRcode.class);
-			String message = scanResult.getContents();
-			addqrcode.putExtra(EXTRA_MESSAGE, message);
-			startActivity(addqrcode);
-		}
-		// else continue with any other code you need in the method
-	}
+
 
 	private final TextView.OnTouchListener scanAnything = new TextView.OnTouchListener() {
 		public boolean onTouch(View v, MotionEvent event) {
-			Intent addqrcode = new Intent(getBaseContext(), AddQRcode.class);
-			String message = "test qrcode";//scanResult.getContents();
-			addqrcode.putExtra(EXTRA_MESSAGE, message);
-			startActivity(addqrcode);  
+			IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+			SCANMESSAGE = PUNCTUALSCAN;
+			integrator.initiateScan();
 			return false;
 		}
 
@@ -182,7 +216,7 @@ public class MainActivity extends Activity {
 		JSONObject jtest = new JSONObject();
 		//getDatabasePath(Synchrotags);
 		try {
-//			jtest.put(LOGINUSR, LOGINPWD);
+			//			jtest.put(LOGINUSR, LOGINPWD);
 			jtest.put("test", "data");
 			jtest.put("test2", "noeud");
 			jtest.put("test3", "ref");
@@ -190,9 +224,9 @@ public class MainActivity extends Activity {
 			File file = new File(Environment.getDataDirectory(), "Synchrotags");
 			//jtest.put("current_node", NoeudsBDD.)
 			//		String url = "http://192.168.5.70:9000/iut-manager-web/bidule";
-					String url1 = "http://h.n0m.fr:9000/siteB/sync";
+			String url1 = "http://h.n0m.fr:9000/siteB/sync";
 			//		String url = "http://n0m.fr/testandroidjson.php?";
-//			String url = "http://info-morgane.iut.u-bordeaux1.fr/perso/2012-2013/jmanenti/truc.php";
+			//			String url = "http://info-morgane.iut.u-bordeaux1.fr/perso/2012-2013/jmanenti/truc.php";
 			HttpResponse re = HTTPPoster.doPost(url1, jtest);
 			String temp = EntityUtils.toString(re.getEntity());
 			if (temp.compareTo("SUCCESS")==0)

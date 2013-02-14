@@ -43,14 +43,13 @@
     <string name="title_activity_metadata_modification">MetadataModification</string>
     <string name="metadata_modification_type">Type de la métadonnée</string>
     <string name="metadata_modification_content">Contenu de la métadonnée</string>
-	<string name="bddRaz">Remise à zéro de la BDD</string>
+    <string name="bddRaz">Remise à zéro de la BDD</string>
     <string name="continuous_father_scan_prompt">Scannez le père</string>
     <string name="continuous_father_scan_validate">Valider le père</string>
     <string name="sonscan_prompt">Scannez un fils</string>
     <string name="sonscan_son_validate">Ajouter ce fils</string>
     <string name="sonscan_end_scans">Fin du scan</string>
-    
-    
+
     <!-- Scanner -->
     <string name="app_picker_name">Applications</string>
     <string name="bookmark_picker_name">Bookmarks</string>
@@ -174,5 +173,6 @@
 
     <!-- TODO : nettoyer les noms inutiles -->
     <string name="title_activity_parentsearch">Chercher un noeud parent</string>
+    <string name="title_activity_main_to_add_qrcode">MainToAddQRCode</string>
 
 </resources>

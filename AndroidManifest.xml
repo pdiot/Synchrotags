@@ -85,8 +85,7 @@
         </activity>
         <activity android:name="fr.voltanite.activity.NodeDetailedDisplayActivity" >
         </activity>
-        <activity 
-            android:name="fr.voltanite.activity.ParentSearch" >
+        <activity android:name="fr.voltanite.activity.ParentSearch" >
             android:label="@string/title_activity_parentsearch" >
         </activity>
         <!-- Scanner code -->
@@ -269,8 +268,11 @@
             android:name="fr.voltanite.activity.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
+        <activity android:name="fr.voltanite.activity.NodeSearchByCode" >
+        </activity>
         <activity
-            android:name="fr.voltanite.activity.NodeSearchByCode">
+            android:name="fr.voltanite.activity.MainToAddQRCode"
+            android:label="@string/title_activity_main_to_add_qrcode" >
         </activity>
     </application>
 

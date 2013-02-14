@@ -2,6 +2,9 @@ package fr.voltanite.activity;
 
 import java.util.ArrayList;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,13 +17,14 @@ import fr.voltanite.noeud.NoeudsBDD;
 import fr.voltanite.utils.Utils;
 
 public class ContinuousQRCodeFatherScan extends Activity {
-	
+
 	public static ArrayList<Metadata> METAS = new ArrayList<Metadata>();
 	private static String QRCODE;
 	private static String NAME;
 	private static String DESC;
 	private static int FATHER;
 	private static int ParentSearchResult = 26;
+	private static int IDTOTRANSMIT;
 
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -28,8 +32,9 @@ public class ContinuousQRCodeFatherScan extends Activity {
 		setContentView(R.layout.activity_continuous_father_scan);
 		Intent mIntent = getIntent();
 		QRCODE = mIntent.getStringExtra("FatherCode");
+		IDTOTRANSMIT = 0;
 	}
-	
+
 	public void onResume()
 	{
 		super.onResume();
@@ -37,14 +42,14 @@ public class ContinuousQRCodeFatherScan extends Activity {
 		DESC = "DescStub";
 		FATHER = 0;
 	}
-	
+
 	public void onBackPressed()
 	{
 		Intent intent = new Intent (this, MainActivity.class);
 		startActivity(intent);
 		finish();
 	}
-	
+
 	public void parentSearch(View v)
 	{
 		Intent intent = new Intent(getBaseContext(), ParentSearch.class);
@@ -52,23 +57,38 @@ public class ContinuousQRCodeFatherScan extends Activity {
 		intent.putExtra(MainActivity.EXTRA_MESSAGE_ID, String.valueOf(0));
 		startActivityForResult(intent, ParentSearchResult);
 	}
-	
-	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == ParentSearchResult)
 		{
 			if (resultCode == RESULT_OK)
 			{
-				int fathId = intent.getIntExtra("FatherId", 0);
+				int fathId = data.getIntExtra("FatherId", 0);
 				((TextView)findViewById(R.id.conti_fatherscan_father)).setText("" + fathId);
 				System.out.println("Parent id reçue dans ContinuousFather " + fathId);
 			}
 		}
+		else 
+		{
+
+			IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+			Intent intent;
+			String message;
+			if (!scanResult.equals(null)) {
+				intent = new Intent(this, ContinuousQRCodeSonScan.class);
+				message = scanResult.getContents();
+				intent.putExtra("FatherId", IDTOTRANSMIT);
+				intent.putExtra("SonCode", message);
+			}
+		}
+
 	}
-	
+
+
 	public void createNode(View v)
 	{
 		Intent intent = new Intent(this, ContinuousQRCodeSonScan.class);
-		
+
 		TextView tnom = (TextView) findViewById(R.id.conti_fatherscan_saisie_nom);
 		String nom = tnom.getText().toString();
 		TextView tpar = (TextView) findViewById(R.id.conti_fatherscan_father);					
@@ -90,7 +110,7 @@ public class ContinuousQRCodeFatherScan extends Activity {
 
 		Noeud noeud = new Noeud(NAME, QRCODE, DESC, FATHER, 0);
 		NoeudsBDD nbdd = new NoeudsBDD(getBaseContext());
-		
+
 		try {
 			nbdd.open();
 			ArrayList<Noeud> bd_noeuds = nbdd.getNoeuds();
@@ -136,8 +156,8 @@ public class ContinuousQRCodeFatherScan extends Activity {
 		METAS = new ArrayList<Metadata>();
 		startActivity(intent);
 	}
-	
-	
+
+
 	public void createMeta(View v)
 	{
 		Intent intent = new Intent(this, AddMetadataContinuousFatherActivity.class);
